@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lightweight Messenger</title>
+    <link rel="stylesheet" href="chat.css">
+</head>
+<body>
+  <!-- Left sidebar -->
+  <div id="rooms-sidebar">
+    <h2>Active Rooms</h2>
+    <div class='room' id="addroom">+ Add New Room</div>
+    <!-- <div class="room">Room 1</div> -->
+  </div>
+
+  <!-- Middle chat section -->
+  <div id="chat-section">
+    <div class="chat-titlebar">Current Room Name</div>
+    <div class="chat-messages">
+      <!--<p></p>-->
+    </div>
+    <div class="chat-input">
+        <input type="text" placeholder="Type a message...">
+        <button>Send</button>
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div id="members-sidebar">
+    <h2>Active Members</h2>
+    <div class="member" id="adduser">+ Add User</div>
+    <!-- <div class="member">User1(You)</div> -->
+  </div>
+  <script type="module" src="./js/events.js"></script>
+</body>
+</html>

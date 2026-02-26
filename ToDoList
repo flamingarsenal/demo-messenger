@@ -1,0 +1,8 @@
+Messenger To Do List-
+
+i. implement modulated jwtAuth.js
+ii. add jwt verification on reload
+iii. add the ability to remove rooms
+iv. add a /getRooms endpoint
+v. make active members update for everyone when a new user joins
+vi. remove addUser()
