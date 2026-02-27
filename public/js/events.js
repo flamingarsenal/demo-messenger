@@ -1,6 +1,6 @@
 import { getMessages, getUsers, leaveRoom, requestNewRoom, requestNewUser, sendMessage } from "./api.js";
 import { connectWS, setTypingStatus } from "./socket.js";
-import { addMessage, addNewRoom, addNewRoomInput, addNewUser, addNewUserInput, confirmLeave, displayMessages, displayUsers, getCurrentRoom, getMessage, getNewRoomName, getNewUserName, pageInit, removeError, removeRoom, showError, updateRoomTitle } from "./ui.js";
+import { addMessage, addNewRoom, addNewRoomInput, addNewUser, addNewUserInput, clearMsgBar, confirmLeave, displayMessages, displayUsers, getCurrentRoom, getMessage, getNewRoomName, getNewUserName, pageInit, removeError, removeRoom, showError, updateRoomTitle } from "./ui.js";
 
 const username = sessionStorage.getItem('username');
 const token = sessionStorage.getItem('token');
@@ -123,14 +123,17 @@ adduser.addEventListener('click', () => {
 messageBar.addEventListener('keydown', (e) => {
     if (e.key == 'Enter') {
         message();
+        clearMsgBar();
         return;
+    } else if (e.key.length == 1) {
+        const roomId = rooms[currentRoom].split('.')[0];
+        setTypingStatus(token, roomId)
     }
-    const roomId = rooms[currentRoom].split('.')[0];
-    setTypingStatus(token, roomId)
 })
 
 sendMsg.addEventListener('click', async () => {
     message();
+    clearMsgBar();
 })
 
 const ws = connectWS('ws://127.0.0.1:8080/', token, addroom);

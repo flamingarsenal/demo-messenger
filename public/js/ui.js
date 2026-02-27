@@ -100,7 +100,7 @@ export function addNewUserInput() {
     const newUserInput = newUserDiv.appendChild(document.createElement('input'));
     
     newUserDiv.className = 'member';
-    newUserInput.placeholder = 'Enter Username (CaSe SeNsItIvE)';
+    newUserInput.placeholder = 'Enter Username';
 
     membersSidebar.removeChild(adduser);
     membersSidebar.appendChild(newUserDiv);
@@ -109,16 +109,24 @@ export function addNewUserInput() {
     return newUserDiv;
 }
 
+export function addUser(username) {
+    const adduser = document.getElementById('adduser');
+    const membersSidebar = document.getElementById('members-sidebar');
+    const newUser = document.createElement('div');
+
+    newUser.innerText = username;
+    newUser.className = 'member memberName';
+    newUser.id = username;
+
+    membersSidebar.appendChild(newUser);
+    if (adduser) membersSidebar.appendChild(adduser);
+}
+
 export function addNewUser(isValid, newUserDiv, newUserName, adduser) {
     const membersSidebar = document.getElementById('members-sidebar');
     
     if (isValid) {
-        const newUser = document.createElement('div');
-
-        newUser.innerText = newUserName;
-        newUser.className = 'member memberName';
-
-        membersSidebar.appendChild(newUser);
+        addUser(newUserName);
     }
     
     membersSidebar.removeChild(newUserDiv);
@@ -177,11 +185,11 @@ export function removeError(errBtn) {
 
 export function getCurrentRoom(clickedRoom, rooms) {
     const roomTitle = document.querySelector('.chat-titlebar');
-    const room = clickedRoom ? clickedRoom.innerText : null;
+    const room = clickedRoom ? clickedRoom.innerText.replace('X', '').trim() : null; // this reomves the text from the leave button included in innertext
 
     let currentRoom = rooms.findIndex(element => element.split('.')[1] === room);
     if (currentRoom == -1) {
-        console.log('cant find room')
+        console.log('cant find room' + room);
         currentRoom = 0;
     } else {
         roomTitle.textContent = room;
@@ -204,6 +212,7 @@ export function displayUsers(username, users, adduser) {
         const userDiv = document.createElement('div');
         userDiv.innerText = username;
         userDiv.className = 'member memberName';
+        userDiv.id = username;
 
         divs.push(userDiv);
     })
@@ -229,7 +238,6 @@ export function addMessage(username, text, isGlobal) {
         msgP.innerText = text;
     } else {
         msgP.innerText = username + ': ' + text;
-        msgP.id = username;
     }
 
     chatMessages.appendChild(msgP);
@@ -247,7 +255,6 @@ export function displayMessages(messages) {
             msgP.innerText = text;
         } else {
             msgP.innerText = username + ': ' + text;
-            msgP.id = username;
         }
 
         msgs.push(msgP);
@@ -263,6 +270,7 @@ export function updateRoomTitle(title) {
 export function showTypingStatus(usernames) {
     const chatMessages = document.querySelector('.chat-messages');
     let statusP = document.querySelector('.chat-messages #statuses');
+    console.log(usernames);
     
     if (!usernames.length && statusP) {
         chatMessages.removeChild(statusP);
@@ -273,7 +281,7 @@ export function showTypingStatus(usernames) {
     }
 
     const v = usernames.length > 1 ? ' are' : ' is';
-    usernames = username.length < 3 ? usernames.join(', ') : 'Multiple users';
+    usernames = usernames.length < 3 ? usernames.join(', ') : 'Multiple users';
 
     statusP.innerText = usernames + v + ' typing...';
 
@@ -292,5 +300,13 @@ export function removeUser(username) {
 }
 
 export function updateUnread(roomName, unreadCount) {
-    document.getElementById(roomName).innerText = roomName + ' (' + unreadCount + ')';
+    if (unreadCount > 0) {
+        document.getElementById(roomName).innerText = roomName + ' (' + unreadCount + ')';
+    } else {
+        document.getElementById(roomName).innerText = roomName
+    }
+}
+
+export function clearMsgBar() {
+    document.querySelector('.chat-input input').value = '';
 }

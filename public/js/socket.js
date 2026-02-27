@@ -1,5 +1,5 @@
 import { setRoomEventListeners, getCurrentRoomIndex, updateUi } from "./events.js";
-import { addMessage, addNewRoom, removeUser, showTypingStatus } from "./ui.js";
+import { addMessage, addNewRoom, addNewUser, addUser, removeUser, showTypingStatus } from "./ui.js";
 
 let rooms = sessionStorage.getItem('rooms');
 rooms = rooms ? rooms.split(',') : [];
@@ -50,13 +50,20 @@ export function connectWS(url, token, addroom) {
                         if (index > -1) statuses.splice(index, 1);
                     }
 
-                    const currentRoomStatuses = statuses.filter(status => status.roomId == rooms[getCurrentRoomIndex()].split('.')[0]);
+                    const currentRoomStatuses = statuses.filter(status => status.roomId != rooms[getCurrentRoomIndex()].split('.')[0]);
 
                     showTypingStatus(currentRoomStatuses.map(status => status.username));
+                    break;
                 case 'userLeave':
                     rooms = sessionStorage.getItem('rooms');
                     if (rooms[getCurrentRoomIndex()].split('.')[0] == msg.roomId) {
                         removeUser(msg.username);
+                    }
+                    break;
+                case 'userJoin':
+                    rooms = sessionStorage.getItem('rooms');
+                    if (rooms[getCurrentRoomIndex()].split('.')[0] == msg.roomId) {
+                        addUser(msg.username);
                     }
                     break;
             }

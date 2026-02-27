@@ -135,4 +135,20 @@ function userLeave(username, roomId) {
     })
 }
 
-module.exports = { listenWS, notifyAddedUser, broadcastMessage, userLeave };
+function broadcastAddedUser(username, newUser, roomId) {
+    const users = db.getUsers(username, roomId);
+
+    const msg = JSON.stringify({
+        action: 'userJoin',
+        roomId: roomId,
+        username: newUser
+    })
+
+    users.forEach(user => {
+        const ws = sockets.get(user);
+
+        if (ws) ws.send(msg);
+    })
+}
+
+module.exports = { listenWS, notifyAddedUser, broadcastMessage, userLeave, broadcastAddedUser };

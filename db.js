@@ -136,6 +136,9 @@ function leaveRoom(roomId, username) {
   if (!members) {
     db.prepare('DELETE FROM messages WHERE roomId = ?').run(roomId);
     db.prepare('DELETE FROM rooms WHERE id = ?').run(roomId);
+    return false;
+  } else {
+    return true;
   }
 }
 

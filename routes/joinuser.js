@@ -2,7 +2,7 @@ const express = require('express');
 const dotenv = require ('dotenv');
 const jwt = require('../jwtAuth.js');
 const db = require('../db.js');
-const { notifyAddedUser, broadcastMessage } = require('../sockets/socket.js');
+const { notifyAddedUser, broadcastMessage, broadcastAddedUser } = require('../sockets/socket.js');
 const router = express.Router();
 
 router.post('/', (req, res) => {
@@ -27,6 +27,7 @@ router.post('/', (req, res) => {
   const global = newUser + ' joined the room';
   db.addMessage(roomId, username, global, true);
   broadcastMessage(roomId, null, global, null, 2);
+  broadcastAddedUser(username, newUser, roomId);
 })
 
 module.exports = router;
