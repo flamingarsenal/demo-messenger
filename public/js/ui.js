@@ -1,12 +1,15 @@
 const divs = document.querySelectorAll('body div');
 const body = document.querySelector('body');
+const addroom = document.getElementById('addroom');
+const adduser = document.getElementById('adduser');
+let newRoomDiv;
+let newUserDiv;
+const timer = createTimer();
+let time;
 
 export function pageInit(username) {
     document.title = 'Lightweight Messenger - ' + username;
 
-    // get the sidebar showing all the rooms and cycle through all the room names stored in session storage and add them in
-    const addroom = document.getElementById('addroom');
-    const adduser = document.getElementById('adduser');
     const roomsSidebar = document.getElementById('rooms-sidebar');
     const roomTitle = document.querySelector('.chat-titlebar');
     const sendMsg = document.querySelector('.chat-input button');
@@ -33,21 +36,21 @@ export function pageInit(username) {
 
         roomDiv.appendChild(xBtn);
         fragment.appendChild(roomDiv);
+        // lastly add the button to add new rooms
+        fragment.appendChild(addroom);
+        fragment.appendChild(timer);
     })
 
     roomsSidebar.appendChild(fragment);
-    // lastly add the button to add new rooms
-    roomsSidebar.appendChild(addroom);
 
     return {addroom, adduser, sendMsg, messageBar};
 }
 
 export function addNewRoomInput() {
-    const addroom = document.getElementById('addroom');
     const roomsSidebar = document.getElementById('rooms-sidebar');
 
     // prepare the input element to set the new room name
-    const newRoomDiv = document.createElement('div')
+    newRoomDiv = document.createElement('div')
     const newRoomInput = newRoomDiv.appendChild(document.createElement('input'));
     
     newRoomDiv.className = 'room'
@@ -56,12 +59,13 @@ export function addNewRoomInput() {
     // remove the button and show the new input element
     roomsSidebar.removeChild(addroom);
     roomsSidebar.appendChild(newRoomDiv);
+    roomsSidebar.appendChild(timer);
     newRoomInput.focus();
 
     return newRoomDiv;
 }
 
-export function addNewRoom(isValid, newRoomDiv, newRoomName, addroom) {
+export function addNewRoom(isValid, newRoomName) {
     const roomsSidebar = document.getElementById('rooms-sidebar');
     const xBtn = document.createElement('button');
     
@@ -83,10 +87,11 @@ export function addNewRoom(isValid, newRoomDiv, newRoomName, addroom) {
     }
     
     roomsSidebar.appendChild(addroom);
+    roomsSidebar.appendChild(timer);
     return xBtn;
 }
 
-export function getNewRoomName(newRoomDiv) {
+export function getNewRoomName() {
     const newRoomName = newRoomDiv.querySelector('input').value;
     
     return newRoomName;
@@ -94,9 +99,8 @@ export function getNewRoomName(newRoomDiv) {
 
 export function addNewUserInput() {
     const membersSidebar = document.getElementById('members-sidebar');
-    const adduser = document.getElementById('adduser');
 
-    const newUserDiv = document.createElement('div');
+    newUserDiv = document.createElement('div');
     const newUserInput = newUserDiv.appendChild(document.createElement('input'));
     
     newUserDiv.className = 'member';
@@ -110,7 +114,6 @@ export function addNewUserInput() {
 }
 
 export function addUser(username) {
-    const adduser = document.getElementById('adduser');
     const membersSidebar = document.getElementById('members-sidebar');
     const newUser = document.createElement('div');
 
@@ -122,7 +125,7 @@ export function addUser(username) {
     if (adduser) membersSidebar.appendChild(adduser);
 }
 
-export function addNewUser(isValid, newUserDiv, newUserName, adduser) {
+export function addNewUser(isValid, newUserName) {
     const membersSidebar = document.getElementById('members-sidebar');
     
     if (isValid) {
@@ -133,7 +136,7 @@ export function addNewUser(isValid, newUserDiv, newUserName, adduser) {
     membersSidebar.appendChild(adduser);
 }
 
-export function getNewUserName(newUserDiv) {
+export function getNewUserName() {
     const newUserName = newUserDiv.querySelector('input').value;
     
     return newUserName;
@@ -197,7 +200,7 @@ export function getCurrentRoom(clickedRoom, rooms) {
     return currentRoom;
 }
 
-export function displayUsers(username, users, adduser) {
+export function displayUsers(username, users) {
     const membersSidebar = document.getElementById('members-sidebar');
     const membersHeader = document.querySelector('#members-sidebar h2');
     if (!adduser) adduser = document.getElementById('adduser');
@@ -309,4 +312,24 @@ export function updateUnread(roomName, unreadCount) {
 
 export function clearMsgBar() {
     document.querySelector('.chat-input input').value = '';
+}
+
+export function startTimer(expiryTime) {
+    time = expiryTime;
+    setInterval(() => {
+        // show the time
+        timer.innerText = 'Session time left: ' + String(Math.floor(time / 3600)).padStart(2, '0') + ':' + String(Math.floor(time / 60)).padStart(2, '0') + ':' + String(time % 60).padStart(2, '0');
+        time--;
+    }, 1000)
+}
+
+function createTimer() {
+    const roomsSidebar = document.getElementById('rooms-sidebar');
+    const timer = document.createElement('div');
+
+    timer.id = 'timer';
+    timer.className = 'room';
+    roomsSidebar.appendChild(timer);
+
+    return timer;
 }

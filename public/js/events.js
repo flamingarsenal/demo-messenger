@@ -1,9 +1,11 @@
 import { getMessages, getUsers, leaveRoom, requestNewRoom, requestNewUser, sendMessage } from "./api.js";
 import { connectWS, setTypingStatus } from "./socket.js";
-import { addMessage, addNewRoom, addNewRoomInput, addNewUser, addNewUserInput, clearMsgBar, confirmLeave, displayMessages, displayUsers, getCurrentRoom, getMessage, getNewRoomName, getNewUserName, pageInit, removeError, removeRoom, showError, updateRoomTitle } from "./ui.js";
+import { addMessage, addNewRoom, addNewRoomInput, addNewUser, addNewUserInput, clearMsgBar, confirmLeave, displayMessages, displayUsers, getCurrentRoom, getMessage, getNewRoomName, getNewUserName, pageInit, removeError, removeRoom, showError, startTimer, updateRoomTitle } from "./ui.js";
+import { verifyToken } from "./auth.js";
 
 const username = sessionStorage.getItem('username');
 const token = sessionStorage.getItem('token');
+setTimer();
 const {addroom, adduser, sendMsg, messageBar} = pageInit(username);
 let rooms = sessionStorage.getItem('rooms'); // array of strings in format <roomId>.<roomName> stored as a single string
 rooms = rooms ? rooms.split(',') : []; // make rooms an empty array if empty otherwise turn into a proper array
@@ -16,16 +18,14 @@ if (rooms.length != 0) {
 
 setRoomEventListeners();
 
-// when the user clicks on the button to add new rooms
-addroom.addEventListener('click', () => {
+const addRoomHandler = () => {
     // prepare the input element to set the new room name
     const newRoomDiv = addNewRoomInput();
-
-    newRoomDiv.addEventListener('keydown', async (event) => {
+    const newRoomHandler = async (event) => {
         // user submits name
         switch (event.key) {
             case 'Enter':
-                const newRoomName = getNewRoomName(newRoomDiv);
+                const newRoomName = getNewRoomName();
                 const response = await requestNewRoom(newRoomName, token);
             
                 const msg = await response.json();
@@ -35,7 +35,7 @@ addroom.addEventListener('click', () => {
                     sessionStorage.setItem('rooms', rooms);
                     // addNewRoom() returns the newly added button to the newly added room
                     // pushing that onto the array of buttons
-                    addNewRoom(true, newRoomDiv, newRoomName, addroom); 
+                    addNewRoom(true, newRoomName); 
                     
                     setRoomEventListeners()
                     currentRoom = rooms.length - 1;
@@ -53,71 +53,75 @@ addroom.addEventListener('click', () => {
                 
                     errBtn.addEventListener('click', () => {
                         removeError(errBtn);
-                        errBtn.removeEventListener('click', () => {})
                     })
                 }
             case 'Escape':
-                addNewRoom(false, newRoomDiv, null, addroom);
+                addNewRoom(false, null);
                 break;
         }
-        })
+    }
 
-        // remove the event listener for storage cleanup
-        newRoomDiv.removeEventListener('keydown', () => {});
-    })
+    newRoomDiv.addEventListener('keydown', newRoomHandler)
+    // remove the event listener for storage cleanup
+    newRoomDiv.removeEventListener('keydown', newRoomHandler);
+}
 
-    addroom.removeEventListener('click', () => {});
+// when the user clicks on the button to add new rooms
+addroom.addEventListener('click', addRoomHandler)
+addroom.removeEventListener('click', addRoomHandler);
+
+const newUserHandler = async (event) => {
+    // user submits name
+    switch (event.key) {
+        case 'Enter':
+            const newUserName = getNewUserName();
+            // no rooms yet
+            if (rooms.length == 0) {
+                addNewUser(false, null);
+                const errBtn = showError("You are not in any rooms yet");
+
+                errBtn.addEventListener('click', () => {
+                    removeError(errBtn);
+                })
+                break;
+            } else {
+                const room = rooms[currentRoom].split('.');
+                const roomId = room[0];
+                const roomName = room[1]
+                const response = await requestNewUser(newUserName, roomId, roomName, token);
+                const msg = await response.json();
+                
+                // server aproves
+                if (response.ok) {
+                    updateUi(room);
+                    break;
+                } else { // request fails
+                    // token not working
+                    if (msg.error == "Invalid or expired token") {
+                        sessionStorage.clear(); // remvoe all the stored items
+                        window.location.replace('/'); // redirect to login
+                    }
+
+                    const errBtn = showError(msg.error);
+                
+                    errBtn.addEventListener('click', () => {
+                        removeError(errBtn);
+                    })
+                }
+            }
+
+        case 'Escape':
+            addNewUser(false, null);
+            break;
+    }
+
+    // remove the event listener for storage cleanup
+    newUserDiv.removeEventListener('keydown', newUserHandler);
+}
 
 adduser.addEventListener('click', () => {
     const newUserDiv = addNewUserInput();
-
-    newUserDiv.addEventListener('keydown', async (event) => {
-        // user submits name
-        switch (event.key) {
-            case 'Enter':
-                const newUserName = getNewUserName(newUserDiv);
-                if (rooms.length == 0) {
-                    addNewUser(false, newUserDiv, null, adduser);
-                    const errBtn = showError("You are not in any rooms yet");
-
-                    errBtn.addEventListener('click', () => {
-                        removeError(errBtn);
-                        errBtn.removeEventListener('click', () => {})
-                    })
-                    break;
-                } else {
-                    const room = rooms[currentRoom].split('.');
-                    const roomId = room[0];
-                    const roomName = room[1]
-                    const response = await requestNewUser(newUserName, roomId, roomName, token);
-                    const msg = await response.json();
-                    
-                    if (response.ok) {
-                        updateUi(room);
-                        break;
-                    } else {
-                        if (msg.error == "Invalid or expired token") {
-                            sessionStorage.clear(); 
-                            window.location.replace('/');
-                        }
-
-                        const errBtn = showError(msg.error);
-                    
-                        errBtn.addEventListener('click', () => {
-                            removeError(errBtn);
-                            errBtn.removeEventListener('click', () => {})
-                        })
-                    }
-                }
-
-            case 'Escape':
-                addNewUser(false, newUserDiv, null, adduser);
-                break;
-        }
-
-        // remove the event listener for storage cleanup
-        newUserDiv.removeEventListener('keydown', () => {});
-    })
+    newUserDiv.addEventListener('keydown', newUserHandler)
 })
 
 messageBar.addEventListener('keydown', (e) => {
@@ -214,7 +218,7 @@ export async function updateUi(splitRoom) {
 
     if (res1.ok) {
         const msg = await res1.json();
-        displayUsers(username, msg.users, adduser);
+        displayUsers(username, msg.users);
     }
 
     let res2 = await getMessages(splitRoom[0], token);
@@ -255,4 +259,14 @@ async function message() {
             })
         }
     }
+}
+
+function setTimer () {
+    verifyToken(token); // verify that the token is not expired (the funcion automatically redirects to login if it is)
+    // extract the expiry date and substract it from the current time to get the remaining time
+    const expiryTIme = JSON.parse(atob(token.split('.')[1])).exp - parseInt(Date.now() / 1000);
+    startTimer(expiryTIme);
+    setTimeout(() => {
+        window.location.replace('/');
+    }, expiryTIme * 1000);
 }

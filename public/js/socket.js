@@ -20,7 +20,6 @@ export function connectWS(url, token, addroom) {
         ws.send(msg);
 
         ws.addEventListener('message', (e) => {
-            console.log(e.data);
             const msg = JSON.parse(e.data);
             switch (msg.action) {
                 case 'joinRoom':

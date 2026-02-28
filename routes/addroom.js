@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require ('dotenv');
 const jwt = require('jsonwebtoken');
 const db = require('../db.js');
+const { broadcastMessage } = require('../sockets/socket.js');
 const router = express.Router();
 
 router.post('/', (req, res) => {
@@ -20,6 +21,8 @@ router.post('/', (req, res) => {
             // success
             const roomId = db.createRoom(roomName, username);
             res.status(200).json({success: true, roomname: roomName, roomId: roomId});
+            db.addMessage(roomId, username, username + ' created ' + roomName, true);
+            broadcastMessage(roomId, null, username + ' created ' + roomName, null, 2);
         } catch (e) {
             // none unique room name
             console.log(e);
