@@ -62,78 +62,64 @@ const addRoomHandler = () => {
     }
 
     newRoomDiv.addEventListener('keydown', newRoomHandler)
-    // remove the event listener for storage cleanup
-    newRoomDiv.removeEventListener('keydown', newRoomHandler);
+    addroom.removeEventListener('click', addRoomHandler);
 }
 
 // when the user clicks on the button to add new rooms
 addroom.addEventListener('click', addRoomHandler)
-addroom.removeEventListener('click', addRoomHandler);
 
-const newUserHandler = async (event) => {
-    // user submits name
-    switch (event.key) {
-        case 'Enter':
-            const newUserName = getNewUserName();
-            // no rooms yet
-            if (rooms.length == 0) {
-                addNewUser(false, null);
-                const errBtn = showError("You are not in any rooms yet");
-
-                errBtn.addEventListener('click', () => {
-                    removeError(errBtn);
-                })
-                break;
-            } else {
-                const room = rooms[currentRoom].split('.');
-                const roomId = room[0];
-                const roomName = room[1]
-                const response = await requestNewUser(newUserName, roomId, roomName, token);
-                const msg = await response.json();
-                
-                // server aproves
-                if (response.ok) {
-                    updateUi(room);
-                    break;
-                } else { // request fails
-                    // token not working
-                    if (msg.error == "Invalid or expired token") {
-                        sessionStorage.clear(); // remvoe all the stored items
-                        window.location.replace('/'); // redirect to login
-                    }
-
-                    const errBtn = showError(msg.error);
+const addUserHandler = () => {
+    const newUserDiv = addNewUserInput();
+    const newUserHandler = async (event) => {
+        // user submits name
+        switch (event.key) {
+            case 'Enter':
+                const newUserName = getNewUserName();
+                // no rooms yet
+                if (rooms.length == 0) {
+                    addNewUser(false, null);
+                    const errBtn = showError("You are not in any rooms yet");
                 
                     errBtn.addEventListener('click', () => {
                         removeError(errBtn);
                     })
+                    break;
+                } else {
+                    const room = rooms[currentRoom].split('.');
+                    const roomId = room[0];
+                    const roomName = room[1]
+                    const response = await requestNewUser(newUserName, roomId, roomName, token);
+                    const msg = await response.json();
+                    
+                    // server aproves
+                    if (response.ok) {
+                        updateUi(room);
+                        break;
+                    } else { // request fails
+                        // token not working
+                        if (msg.error == "Invalid or expired token") {
+                            sessionStorage.clear(); // remvoe all the stored items
+                            window.location.replace('/'); // redirect to login
+                        }
+                    
+                        const errBtn = showError(msg.error);
+                    
+                        errBtn.addEventListener('click', () => {
+                            removeError(errBtn);
+                        })
+                    }
                 }
-            }
-
-        case 'Escape':
-            addNewUser(false, null);
-            break;
+            
+            case 'Escape':
+                addNewUser(false, null);
+                break;
+        }
     }
-
-    // remove the event listener for storage cleanup
-    newUserDiv.removeEventListener('keydown', newUserHandler);
+    newUserDiv.addEventListener('keydown', newUserHandler);
+    adduser.removeEventListener('click', addUserHandler);
 }
 
-adduser.addEventListener('click', () => {
-    const newUserDiv = addNewUserInput();
-    newUserDiv.addEventListener('keydown', newUserHandler)
-})
-
-messageBar.addEventListener('keydown', (e) => {
-    if (e.key == 'Enter') {
-        message();
-        clearMsgBar();
-        return;
-    } else if (e.key.length == 1) {
-        const roomId = rooms[currentRoom].split('.')[0];
-        setTypingStatus(token, roomId)
-    }
-})
+adduser.addEventListener('click', addUserHandler)
 
 sendMsg.addEventListener('click', async () => {
     message();

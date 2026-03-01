@@ -1,0 +1,24 @@
+# Ignore database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignore environment files
+.env
+
+# Ignore logs
+*.log
+logs/
+npm-debug.log*
+
+# Ignore node_modules (if using Node.js)
+node_modules/
+
+# Ignore build and cache directories
+dist/
+build/
+.cache/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db

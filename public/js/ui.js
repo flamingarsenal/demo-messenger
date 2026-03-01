@@ -240,7 +240,14 @@ export function addMessage(username, text, isGlobal) {
         msgP.className = 'global';
         msgP.innerText = text;
     } else {
+        const timeP = document.createElement('time');
+        const time = new Date();
+
         msgP.innerText = username + ': ' + text;
+        timeP.dateTime = time.toISOString();
+        timeP.innerText = String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+     
+        msgP.appendChild(timeP);
     }
 
     chatMessages.appendChild(msgP);
@@ -250,14 +257,20 @@ export function displayMessages(messages) {
     const chatMessages = document.querySelector('.chat-messages');
 
     const msgs = [];
-    messages.forEach(({username, text, isGlobal}) => {
+    messages.forEach(({username, text, isGlobal, time}) => {
         const msgP = document.createElement('p');
 
         if (isGlobal) {
             msgP.className = 'global';
             msgP.innerText = text;
         } else {
+            const timeP = document.createElement('time');
+            const date = new Date(time);
+
             msgP.innerText = username + ': ' + text;
+            timeP.dateTime = date.toISOString();
+
+            msgP.appendChild(timeP);
         }
 
         msgs.push(msgP);
@@ -316,10 +329,24 @@ export function clearMsgBar() {
 
 export function startTimer(expiryTime) {
     time = expiryTime;
-    setInterval(() => {
-        // show the time
+    
+    const updateTimer = () => {
         timer.innerText = 'Session time left: ' + String(Math.floor(time / 3600)).padStart(2, '0') + ':' + String(Math.floor(time / 60)).padStart(2, '0') + ':' + String(time % 60).padStart(2, '0');
+    }
+
+    // show the time initially
+    updateTimer();
+
+    // set a timeout to change the color to red when there's only a minute left
+    setTimeout(() => {
+        timer.style.color = "red";
+    }, (expiryTime - 60) * 1000);
+    
+    // decrement the time and timer
+    setInterval(() => {
         time--;
+        // show the time
+        updateTimer();
     }, 1000)
 }
 

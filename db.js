@@ -18,7 +18,7 @@ db.exec(`
     roomId INTEGER,
     userId INTEGER,
     content TEXT NOT NULL CHECK (LENGTH(content) > 0),
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    timestamp INTEGER DEFAULT (UNIXEPOCH()),
     isGlobal INTEGER NOT NULL CHECK (isGlobal IN (0,1)) DEFAULT 0,
     FOREIGN KEY (roomId) REFERENCES rooms(id),
     FOREIGN KEY (userId) REFERENCES users(id)
@@ -70,7 +70,8 @@ function getMessagesByRoom(roomId) {
     const username = users[usersIndex].username;
     const text = message.content;
     const isGlobal = Boolean(message.isGlobal);
-    output.push({username, text, isGlobal});
+    const time = message.timestamp;
+    output.push({username, text, isGlobal, time});
   })
 
   return output;
